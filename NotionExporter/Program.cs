@@ -8,14 +8,23 @@ namespace NotionExporter
     public static class Program
     {
         //todo: push to dropbox
+        //todo: file rotation in dropbox
+        //todo: check all notes intact
+        //todo: pass stream properly
+        //todo: deal with binding redirects
+        //todo: global logging
         //todo: make periodic jobs
         //todo: make it webapp
         //todo: unknown state to unknown + sort of time budget
+        //todo: fix encoding issues in zip if possible
         //todo: host somewhere
         public static void Main(string[] args)
         {
             var token = File.ReadAllText("secrets/token_v2"); //note: it seems that token_v2 cookie never expire
             var workspaceId = File.ReadAllText("secrets/workspace_id");
+            var dropboxAccessToken = File.ReadAllText("secrets/dropbox_access_token");
+            var dropboxClient = new DropboxClientWrapper(dropboxAccessToken);
+
 
             var notionClient = new NotionApiClient(token);
             var taskId = notionClient.PostEnqueueExportWorkspaceTask(workspaceId);
@@ -30,8 +39,9 @@ namespace NotionExporter
             if (taskInfo.State == TaskState.Success && taskInfo.ProgressStatus.Type == StatusType.Complete)
             {
                 var result = notionClient.GetExportedWorkspaceZip(taskInfo.ProgressStatus.ExportUrl);
-                File.WriteAllBytes($"NotionExport-{DateTime.Now:dd-MM-yyyy}.zip",
-                    result); //todo: fix encoding issues in zip if possible
+                var fileName = $"NotionExport-{DateTime.Now:dd-MM-yyyy}.zip";
+                dropboxClient.BackupFileWithRotation(fileName, result);
+                File.WriteAllBytes(fileName, result);
             }
             else
             {
