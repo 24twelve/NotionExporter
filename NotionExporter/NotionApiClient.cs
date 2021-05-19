@@ -7,6 +7,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using static NotionExporter.ActionExtensions;
 
 namespace NotionExporter
 {
@@ -74,33 +75,6 @@ namespace NotionExporter
 
             return JsonConvert.DeserializeObject<TContentResult>(result.Content.ReadAsStringAsync().GetAwaiter()
                 .GetResult());
-        }
-
-        private T ExecuteWithRetries<T>(Func<T> action)
-        {
-            T result;
-
-            var tryCount = 0;
-            while (true)
-            {
-                try
-                {
-                    result = action();
-                    break;
-                }
-                catch (Exception e)
-                {
-                    tryCount++;
-                    Console.WriteLine(e);
-                    Console.WriteLine($"Encountered exception, try count {tryCount}");
-                    if (tryCount >= 3)
-                    {
-                        throw;
-                    }
-                }
-            }
-
-            return result;
         }
 
 

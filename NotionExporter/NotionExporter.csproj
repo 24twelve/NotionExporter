@@ -59,6 +59,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ActionExtensions.cs" />
     <Compile Include="DropboxClientWrapper.cs" />
     <Compile Include="NotionApiClient.cs" />
     <Compile Include="Program.cs" />

@@ -7,26 +7,27 @@ namespace NotionExporter
 {
     public static class Program
     {
-        //todo: push to dropbox
-        //todo: file rotation in dropbox
+        //todo: nullref when taskInfo null???? 
         //todo: check all notes intact
         //todo: pass stream properly
         //todo: deal with binding redirects
         //todo: global logging
         //todo: make periodic jobs
         //todo: make it webapp
-        //todo: unknown state to unknown + sort of time budget
+        //todo: unknown state to unknown + sort of time budget for task polling
         //todo: fix encoding issues in zip if possible
         //todo: host somewhere
-        public static void Main(string[] args)
+        public static void Main()
         {
-            var token = File.ReadAllText("secrets/token_v2"); //note: it seems that token_v2 cookie never expire
+            var now = DateTime.Now;
+            var notionAccessToken =
+                File.ReadAllText("secrets/token_v2"); //note: it seems that token_v2 cookie never expire
             var workspaceId = File.ReadAllText("secrets/workspace_id");
             var dropboxAccessToken = File.ReadAllText("secrets/dropbox_access_token");
             var dropboxClient = new DropboxClientWrapper(dropboxAccessToken);
+            var notionClient = new NotionApiClient(notionAccessToken);
 
-
-            var notionClient = new NotionApiClient(token);
+            Console.WriteLine($"Begin Notion export for {now}");
             var taskId = notionClient.PostEnqueueExportWorkspaceTask(workspaceId);
             var taskInfo = notionClient.PostGetTaskInfo(taskId);
             while (taskInfo.State == TaskState.InProgress)
@@ -38,10 +39,10 @@ namespace NotionExporter
 
             if (taskInfo.State == TaskState.Success && taskInfo.ProgressStatus.Type == StatusType.Complete)
             {
-                var result = notionClient.GetExportedWorkspaceZip(taskInfo.ProgressStatus.ExportUrl);
-                var fileName = $"NotionExport-{DateTime.Now:dd-MM-yyyy}.zip";
-                dropboxClient.BackupFileWithRotation(fileName, result);
-                File.WriteAllBytes(fileName, result);
+                var content = notionClient.GetExportedWorkspaceZip(taskInfo.ProgressStatus.ExportUrl);
+                var path = $"NotionExport-{now:dd-MM-yyyy}.zip";
+                dropboxClient.UploadFileAndRotateOldFiles(path, content, now);
+                File.WriteAllBytes(path, content);
             }
             else
             {
