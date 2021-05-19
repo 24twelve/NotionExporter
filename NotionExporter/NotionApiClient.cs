@@ -21,7 +21,11 @@ namespace NotionExporter
         {
             var cookieContainer = new CookieContainer();
             var httpHandler = new HttpClientHandler {CookieContainer = cookieContainer};
-            httpClient = new HttpClient(httpHandler) {BaseAddress = new Uri(BaseUrl)};
+            httpClient = new HttpClient(httpHandler)
+            {
+                BaseAddress = new Uri(BaseUrl),
+                Timeout = TimeSpan.FromSeconds(15)
+            };
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             cookieContainer.Add(httpClient.BaseAddress,
                 new Cookie("token_v2",
@@ -35,38 +39,70 @@ namespace NotionExporter
 
         public string PostEnqueueExportWorkspaceTask(string workspaceId)
         {
-            var enqueueTaskUri = $"{BaseUrl}/enqueueTask";
-
-            var enqueueTaskContent = new StringContent(
-                JsonConvert.SerializeObject(new ExportSpaceRequest(workspaceId), Formatting.Indented),
-                Encoding.UTF8, "application/json");
-
-            var httpRequest = new HttpRequestMessage(HttpMethod.Post, enqueueTaskUri) {Content = enqueueTaskContent};
-
-            var result = httpClient.SendAsync(httpRequest).GetAwaiter().GetResult();
-            return JsonConvert
-                .DeserializeObject<EnqueueTaskResult>(result.Content.ReadAsStringAsync().GetAwaiter().GetResult())
-                ?.TaskId;
+            return MakePostRequestWithRetries<EnqueueTaskExportSpaceRequest, EnqueueTaskResult>("enqueueTask",
+                new EnqueueTaskExportSpaceRequest(workspaceId))?.TaskId;
         }
 
         public GetTaskInfoResult PostGetTaskInfo(string taskId)
         {
-            var uri = $"{BaseUrl}/getTasks";
-            var content =
-                new StringContent(JsonConvert.SerializeObject(new GetTaskInfoRequest(taskId), Formatting.Indented),
-                    Encoding.UTF8, "application/json");
-            var request = new HttpRequestMessage(HttpMethod.Post, uri) {Content = content};
-
-            var result = httpClient.SendAsync(request).GetAwaiter().GetResult();
-            return JsonConvert.DeserializeObject<TaskInfo>(result.Content.ReadAsStringAsync().GetAwaiter().GetResult())
-                ?.Results.FirstOrDefault();
+            return MakePostRequestWithRetries<GetTaskInfoRequest, GetTaskInfoResults>("getTasks",
+                    new GetTaskInfoRequest(taskId))
+                ?.Results
+                .FirstOrDefault();
         }
 
 
         public byte[] GetExportedWorkspaceZip(string downloadUrl)
         {
-            return httpClient.GetByteArrayAsync(downloadUrl).GetAwaiter().GetResult();
+            return ExecuteWithRetries(() => httpClient.GetByteArrayAsync(downloadUrl).GetAwaiter().GetResult());
         }
+
+        private TContentResult MakePostRequestWithRetries<TRequest, TContentResult>(string relativeUrl,
+            TRequest request)
+        {
+            var result = ExecuteWithRetries(() => httpClient.SendAsync(
+                new HttpRequestMessage(HttpMethod.Post, $"{BaseUrl}/{relativeUrl}")
+                {
+                    Content = new StringContent(JsonConvert.SerializeObject(request, Formatting.Indented),
+                        Encoding.UTF8, "application/json")
+                }).GetAwaiter().GetResult());
+
+            if (result.StatusCode != HttpStatusCode.OK)
+            {
+                throw new WebException($"HTTP request unsuccessful. {result}");
+            }
+
+            return JsonConvert.DeserializeObject<TContentResult>(result.Content.ReadAsStringAsync().GetAwaiter()
+                .GetResult());
+        }
+
+        private T ExecuteWithRetries<T>(Func<T> action)
+        {
+            T result;
+
+            var tryCount = 0;
+            while (true)
+            {
+                try
+                {
+                    result = action();
+                    break;
+                }
+                catch (Exception e)
+                {
+                    tryCount++;
+                    Console.WriteLine(e);
+                    Console.WriteLine($"Encountered exception, try count {tryCount}");
+                    if (tryCount >= 3)
+                    {
+                        throw;
+                    }
+                }
+            }
+
+            return result;
+        }
+
 
         private const string BaseUrl = "https://www.notion.so/api/v3";
 
@@ -83,7 +119,7 @@ namespace NotionExporter
         [JsonProperty("taskIds")] public string[] TaskIds { get; set; }
     }
 
-    public class TaskInfo
+    public class GetTaskInfoResults
     {
         [JsonProperty("results")] public GetTaskInfoResult[] Results { get; set; }
     }
@@ -116,9 +152,9 @@ namespace NotionExporter
     }
 
 
-    internal class ExportSpaceRequest
+    internal class EnqueueTaskExportSpaceRequest
     {
-        public ExportSpaceRequest(string workspaceId)
+        public EnqueueTaskExportSpaceRequest(string workspaceId)
         {
             Task = new NotionTask(workspaceId);
         }

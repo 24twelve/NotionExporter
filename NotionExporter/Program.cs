@@ -7,10 +7,11 @@ namespace NotionExporter
 {
     public static class Program
     {
-        //todo: unindex .idea
-        //todo: unknown state to unknown and basic web exception handling + plus sort of time budget
-        //todo: cleanup and host somewhere
         //todo: push to dropbox
+        //todo: make periodic jobs
+        //todo: make it webapp
+        //todo: unknown state to unknown + sort of time budget
+        //todo: host somewhere
         public static void Main(string[] args)
         {
             var token = File.ReadAllText("secrets/token_v2"); //note: it seems that token_v2 cookie never expire
