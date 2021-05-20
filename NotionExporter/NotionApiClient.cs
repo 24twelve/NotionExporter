@@ -11,11 +11,6 @@ using static NotionExporter.ActionExtensions;
 
 namespace NotionExporter
 {
-    internal class EnqueueTaskResult
-    {
-        [JsonProperty("taskId")] public string TaskId { get; set; }
-    }
-
     public class NotionApiClient : IDisposable
     {
         public NotionApiClient(string token)
@@ -35,21 +30,33 @@ namespace NotionExporter
 
         public void Dispose()
         {
-            httpClient?.Dispose();
+            httpClient.Dispose();
         }
 
         public string PostEnqueueExportWorkspaceTask(string workspaceId)
         {
-            return MakePostRequestWithRetries<EnqueueTaskExportSpaceRequest, EnqueueTaskResult>("enqueueTask",
-                new EnqueueTaskExportSpaceRequest(workspaceId))?.TaskId;
+            var request = new EnqueueTaskExportSpaceRequest(workspaceId);
+            var result = MakePostRequestWithRetries<EnqueueTaskExportSpaceRequest, EnqueueTaskResult>("enqueueTask",
+                request);
+            if (result.TaskId == null)
+            {
+                throw new WebException(
+                    $"Notion did not return task id for request {JsonConvert.SerializeObject(request)}");
+            }
+
+            return result.TaskId;
         }
 
         public GetTaskInfoResult PostGetTaskInfo(string taskId)
         {
-            return MakePostRequestWithRetries<GetTaskInfoRequest, GetTaskInfoResults>("getTasks",
-                    new GetTaskInfoRequest(taskId))
-                ?.Results
-                .FirstOrDefault();
+            var result = MakePostRequestWithRetries<GetTaskInfoRequest, GetTaskInfoResults>("getTasks",
+                new GetTaskInfoRequest(taskId));
+            if (!result.Results.Any())
+            {
+                throw new WebException($"Notion did not return task info for task id {taskId}");
+            }
+
+            return result.Results.First();
         }
 
 
@@ -73,23 +80,23 @@ namespace NotionExporter
                 throw new WebException($"HTTP request unsuccessful. {result}");
             }
 
+            var contentResult = ExecuteWithRetries(
+                () => JsonConvert.DeserializeObject<TContentResult>(result.Content
+                    .ReadAsStringAsync().GetAwaiter()
+                    .GetResult()));
 
-            var makePostRequestWithRetries = JsonConvert.DeserializeObject<TContentResult>(result.Content
-                .ReadAsStringAsync().GetAwaiter()
-                .GetResult());
-            //debugging nullref
-            if (makePostRequestWithRetries == null)
-            {
-                throw new Exception($"Caught this strange situation. {JsonConvert.SerializeObject(result)}");
-            }
-
-            return makePostRequestWithRetries;
+            return contentResult!;
         }
 
 
         private const string BaseUrl = "https://www.notion.so/api/v3";
 
         private readonly HttpClient httpClient;
+    }
+
+    public class EnqueueTaskResult
+    {
+        [JsonProperty("taskId")] public string? TaskId { get; set; }
     }
 
     public class GetTaskInfoRequest
@@ -104,21 +111,21 @@ namespace NotionExporter
 
     public class GetTaskInfoResults
     {
-        [JsonProperty("results")] public GetTaskInfoResult[] Results { get; set; }
+        [JsonProperty("results")] public GetTaskInfoResult[] Results { get; set; } = Array.Empty<GetTaskInfoResult>();
     }
 
     public class GetTaskInfoResult
     {
-        [JsonProperty("id")] public string TaskId { get; set; }
+        [JsonProperty("id")] public string? TaskId { get; set; }
         [JsonProperty("state")] public TaskState State { get; set; }
-        [JsonProperty("status")] public ProgressStatus ProgressStatus { get; set; }
+        [JsonProperty("status")] public ProgressStatus? ProgressStatus { get; set; }
     }
 
     public class ProgressStatus
     {
         [JsonProperty("pagesExported")] public int? PagesExported { get; set; }
         [JsonProperty("type")] public StatusType? Type { get; set; } //sic!
-        [JsonProperty("exportURL")] public string ExportUrl { get; set; }
+        [JsonProperty("exportURL")] public string? ExportUrl { get; set; }
     }
 
     public enum StatusType

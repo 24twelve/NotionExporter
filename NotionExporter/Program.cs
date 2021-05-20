@@ -77,7 +77,11 @@ namespace NotionExporter
                 var taskInfo = notionClient.PostGetTaskInfo(taskId);
                 while (taskInfo.State == TaskState.InProgress)
                 {
-                    Log.Information("Exported notes: {0}", taskInfo.ProgressStatus.PagesExported);
+                    if (taskInfo.ProgressStatus != null)
+                    {
+                        Log.Information("Exported notes: {0}", taskInfo.ProgressStatus.PagesExported);
+                    }
+
                     if (cancellationTokenSource.IsCancellationRequested)
                     {
                         Log.Information("Cancellation requested. Stopping...");
@@ -95,9 +99,9 @@ namespace NotionExporter
                     break;
                 }
 
-                if (taskInfo.State == TaskState.Success && taskInfo.ProgressStatus.Type == StatusType.Complete)
+                if (taskInfo.State == TaskState.Success && taskInfo.ProgressStatus!.Type == StatusType.Complete)
                 {
-                    var content = notionClient.GetExportedWorkspaceZip(taskInfo.ProgressStatus.ExportUrl);
+                    var content = notionClient.GetExportedWorkspaceZip(taskInfo.ProgressStatus!.ExportUrl!);
                     var path = $"NotionExport-{now:dd-MM-yyyy-hh-mm-ss}.zip";
                     dropboxClient.UploadFileAndRotateOldFiles(path, content, now);
                     Log.Information("Successfully backed up {0}", path);

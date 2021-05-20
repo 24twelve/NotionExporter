@@ -7,19 +7,21 @@ namespace NotionExporter
     {
         public static T ExecuteWithRetries<T>(Func<T> action)
         {
-            T result;
-
             var tryCount = 0;
             while (true)
             {
                 try
                 {
-                    result = action();
-                    break;
+                    var result = action();
+                    if (result != null)
+                    {
+                        return result;
+                    }
+
+                    tryCount++;
                 }
                 catch (Exception e)
                 {
-                    tryCount++;
                     Log.Error("Encountered exception {e} on try {tryCount}", e, tryCount);
                     if (tryCount >= 3)
                     {
@@ -27,8 +29,6 @@ namespace NotionExporter
                     }
                 }
             }
-
-            return result;
         }
     }
 }

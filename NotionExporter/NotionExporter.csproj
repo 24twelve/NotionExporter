@@ -3,6 +3,8 @@
     <OutputType>Exe</OutputType>
     <LangVersion>latestmajor</LangVersion>
     <TargetFramework>netcoreapp5.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <WarningsAsErrors>nullable</WarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Dropbox.Api" Version="6.6.0" />
