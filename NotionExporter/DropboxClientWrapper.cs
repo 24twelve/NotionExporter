@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using Dropbox.Api;
 using Dropbox.Api.Files;
+using Serilog;
 
 namespace NotionExporter
 {
@@ -27,15 +28,17 @@ namespace NotionExporter
                             x.ClientModified < oldFileThreshold)
                 .Select(x => new DeleteArg(x.PathLower))
                 .ToArray();
-            Console.WriteLine($"Found {filesToRemove.Length} files older than {oldFileThreshold}");
+            Log.Information("Found {count} files older than {oldFileThreshold}", filesToRemove.Length,
+                oldFileThreshold);
             if (filesToRemove.Length > 0)
             {
-                Console.WriteLine($"Deleting {filesToRemove.Length} old files");
+                Log.Information("Deleting {filesToRemove.Length} old files", filesToRemove.Length);
                 dropboxClient.Files.DeleteBatchAsync(filesToRemove).GetAwaiter().GetResult();
             }
 
             fileName = $"/{fileName}";
-            ActionExtensions.ExecuteWithRetries(() => dropboxClient.Files.UploadAsync(fileName, body: new MemoryStream(content)).GetAwaiter().GetResult());
+            ActionExtensions.ExecuteWithRetries(() =>
+                dropboxClient.Files.UploadAsync(fileName, body: new MemoryStream(content)).GetAwaiter().GetResult());
         }
 
         private readonly DropboxClient dropboxClient;

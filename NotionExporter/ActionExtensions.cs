@@ -1,4 +1,5 @@
 ﻿using System;
+using Serilog;
 
 namespace NotionExporter
 {
@@ -19,8 +20,7 @@ namespace NotionExporter
                 catch (Exception e)
                 {
                     tryCount++;
-                    Console.WriteLine(e);
-                    Console.WriteLine($"Encountered exception, try count {tryCount}");
+                    Log.Error("Encountered exception {e} on try {tryCount}", e, tryCount);
                     if (tryCount >= 3)
                     {
                         throw;

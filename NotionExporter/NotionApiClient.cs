@@ -73,8 +73,17 @@ namespace NotionExporter
                 throw new WebException($"HTTP request unsuccessful. {result}");
             }
 
-            return JsonConvert.DeserializeObject<TContentResult>(result.Content.ReadAsStringAsync().GetAwaiter()
+
+            var makePostRequestWithRetries = JsonConvert.DeserializeObject<TContentResult>(result.Content
+                .ReadAsStringAsync().GetAwaiter()
                 .GetResult());
+            //debugging nullref
+            if (makePostRequestWithRetries == null)
+            {
+                throw new Exception($"Caught this strange situation. {JsonConvert.SerializeObject(result)}");
+            }
+
+            return makePostRequestWithRetries;
         }
 
 

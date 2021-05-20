@@ -2,15 +2,13 @@
 using System.IO;
 using System.Threading;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace NotionExporter
 {
     public static class Program
     {
-        //todo: nullref when taskInfo null???? 
-        //todo: check all notes intact
-        //todo: pass stream properly
-        //todo: deal with binding redirects
+        //todo: nullref when taskInfo null???? - добавил эксепшн на этот случай, ловим
         //todo: global logging
         //todo: make periodic jobs
         //todo: make it webapp
@@ -19,6 +17,15 @@ namespace NotionExporter
         //todo: host somewhere
         public static void Main()
         {
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.Console()
+                .WriteTo.File(path: "log.txt", rollingInterval: RollingInterval.Minute)
+                .CreateLogger();
+
+            Log.Information("Well");
+
+
             var now = DateTime.Now;
             var notionAccessToken =
                 File.ReadAllText("secrets/token_v2"); //note: it seems that token_v2 cookie never expire
@@ -27,12 +34,12 @@ namespace NotionExporter
             var dropboxClient = new DropboxClientWrapper(dropboxAccessToken);
             var notionClient = new NotionApiClient(notionAccessToken);
 
-            Console.WriteLine($"Begin Notion export for {now}");
+            Log.Information("Begin Notion export for {now}", now);
             var taskId = notionClient.PostEnqueueExportWorkspaceTask(workspaceId);
             var taskInfo = notionClient.PostGetTaskInfo(taskId);
             while (taskInfo.State == TaskState.InProgress)
             {
-                Console.WriteLine($"Exported notes: {taskInfo.ProgressStatus.PagesExported}");
+                Log.Information("Exported notes: {0}", taskInfo.ProgressStatus.PagesExported);
                 Thread.Sleep(TimeSpan.FromSeconds(5));
                 taskInfo = notionClient.PostGetTaskInfo(taskId);
             }
@@ -40,15 +47,16 @@ namespace NotionExporter
             if (taskInfo.State == TaskState.Success && taskInfo.ProgressStatus.Type == StatusType.Complete)
             {
                 var content = notionClient.GetExportedWorkspaceZip(taskInfo.ProgressStatus.ExportUrl);
-                var path = $"NotionExport-{now:dd-MM-yyyy}.zip";
+                var path = $"NotionExport-{now:dd-MM-yyyy-hh-mm-ss}.zip";
                 dropboxClient.UploadFileAndRotateOldFiles(path, content, now);
-                File.WriteAllBytes(path, content);
             }
             else
             {
-                Console.WriteLine(
-                    $"Something unexpected happened. Task state: {JsonConvert.SerializeObject(taskInfo, Formatting.Indented)}");
+                Log.Error("Something unexpected happened. Task state: {0}",
+                    JsonConvert.SerializeObject(taskInfo, Formatting.Indented));
             }
+
+            Log.CloseAndFlush();
         }
     }
 }
