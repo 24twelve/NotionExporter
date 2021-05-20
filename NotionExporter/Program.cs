@@ -23,9 +23,23 @@ namespace NotionExporter
                 .WriteTo.File(path: "log.txt", rollingInterval: RollingInterval.Minute)
                 .CreateLogger();
 
-            Log.Information("Well");
+            try
+            {
+                ExportAndBackupNotionWorkspace();
+            }
+            catch (Exception e)
+            {
+                Log.Fatal("Encountered exception. Application terminated. {e}", e);
+                throw;
+            }
+            finally
+            {
+                Log.CloseAndFlush();
+            }
+        }
 
-
+        private static void ExportAndBackupNotionWorkspace()
+        {
             var now = DateTime.Now;
             var notionAccessToken =
                 File.ReadAllText("secrets/token_v2"); //note: it seems that token_v2 cookie never expire
@@ -55,8 +69,6 @@ namespace NotionExporter
                 Log.Error("Something unexpected happened. Task state: {0}",
                     JsonConvert.SerializeObject(taskInfo, Formatting.Indented));
             }
-
-            Log.CloseAndFlush();
         }
     }
 }
