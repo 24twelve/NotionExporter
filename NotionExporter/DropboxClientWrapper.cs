@@ -18,22 +18,39 @@ namespace NotionExporter
         {
             var expirationTimespan = TimeSpan.FromDays(10);
             var oldFileThreshold = now - expirationTimespan;
+            const int countThreshold = 30;
 
             //note: if some problem with a lot of files occur, use has_more field and iterate through all
             //note: we assume that update date == creation date because we never modify stored .zip files
-            var filesToRemove = dropboxClient.Files.ListFolderAsync("").GetAwaiter().GetResult().Entries
+            var oldFiles = dropboxClient.Files.ListFolderAsync("").GetAwaiter().GetResult().Entries
                 .Where(x => x.IsFile)
                 .Select(x => x.AsFile)
                 .Where(x => x.ServerModified < oldFileThreshold ||
                             x.ClientModified < oldFileThreshold)
                 .Select(x => new DeleteArg(x.PathLower))
                 .ToArray();
-            Log.Information("Found {count} files older than {oldFileThreshold}", filesToRemove.Length,
+            Log.Information("Found {count} files older than {oldFileThreshold}", oldFiles.Length,
                 oldFileThreshold);
-            if (filesToRemove.Length > 0)
+            if (oldFiles.Length > 0)
             {
-                Log.Information("Deleting {filesToRemove.Length} old files", filesToRemove.Length);
-                dropboxClient.Files.DeleteBatchAsync(filesToRemove).GetAwaiter().GetResult();
+                Log.Information("Deleting {filesToRemove.Length} old files", oldFiles.Length);
+                dropboxClient.Files.DeleteBatchAsync(oldFiles).GetAwaiter().GetResult();
+            }
+
+            var excessFiles = dropboxClient.Files.ListFolderAsync("").GetAwaiter().GetResult().Entries
+                .Where(x => x.IsFile)
+                .Select(x => x.AsFile)
+                .OrderByDescending(x => x.ServerModified)
+                .Skip(countThreshold)
+                .Select(x => new DeleteArg(x.PathLower))
+                .ToArray();
+
+            Log.Information("Found {count} files more than allowed number {countThreshold}", excessFiles.Length,
+                countThreshold);
+            if (excessFiles.Length > 0)
+            {
+                Log.Information("Deleting {0} excess files", excessFiles.Length);
+                dropboxClient.Files.DeleteBatchAsync(excessFiles).GetAwaiter().GetResult();
             }
 
             fileName = $"/{fileName}";

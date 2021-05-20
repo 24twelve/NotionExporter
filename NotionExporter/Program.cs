@@ -9,10 +9,10 @@ namespace NotionExporter
     public static class Program
     {
         //todo: nullref when taskInfo null???? - добавил эксепшн на этот случай, ловим
-        //todo: control file count in dropbox folder
         //todo: reduce unholy mess with cancelattion and loops
         //todo: make it webapp
         //todo: DI
+        //todo: some configuration lib
         //todo: threading
         //todo: unknown state to unknown + sort of time budget for task polling
         //todo: fix encoding issues in zip if possible
@@ -67,6 +67,7 @@ namespace NotionExporter
             var dropboxAccessToken = File.ReadAllText("secrets/dropbox_access_token");
             var dropboxClient = new DropboxClientWrapper(dropboxAccessToken);
             var notionClient = new NotionApiClient(notionAccessToken);
+
 
             Log.Information("Begin Notion export for {now}", now);
             var taskId = notionClient.PostEnqueueExportWorkspaceTask(workspaceId);
