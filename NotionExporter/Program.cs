@@ -8,15 +8,16 @@ namespace NotionExporter
 {
     public static class Program
     {
-        //todo: nullref when taskInfo null???? - добавил эксепшн на этот случай, ловим
-        //todo: reduce unholy mess with cancelattion and loops
-        //todo: make it webapp
+        //todo: .net 5
+        //todo: nullable
+        //todo: make it webapp with ping and job status
         //todo: DI
         //todo: some configuration lib
         //todo: threading
         //todo: unknown state to unknown + sort of time budget for task polling
         //todo: fix encoding issues in zip if possible
         //todo: host somewhere
+        //todo: nullref when taskInfo null???? - добавил эксепшн на этот случай, ловим
         public static void Main()
         {
             ConfigureLogging();
@@ -24,7 +25,7 @@ namespace NotionExporter
             try
             {
                 new JobExecutor("ExportAndBackupNotion", ExportAndBackupNotionWorkspace,
-                    TimeSpan.FromMinutes(30), cancellationTokenSource).Run();
+                    TimeSpan.FromDays(1), cancellationTokenSource).Run();
             }
             catch (Exception e)
             {
@@ -87,6 +88,7 @@ namespace NotionExporter
                     taskInfo = notionClient.PostGetTaskInfo(taskId);
                 }
 
+                //todo: reduce unholy mess with cancelattion and loops
                 if (cancellationTokenSource.IsCancellationRequested)
                 {
                     Log.Information("Cancellation requested. Stopping...");
