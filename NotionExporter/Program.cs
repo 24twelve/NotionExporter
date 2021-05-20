@@ -8,9 +8,8 @@ namespace NotionExporter
 {
     public static class Program
     {
-        //todo: .net 5
-        //todo: nullable
         //todo: make it webapp with ping and job status
+        //todo: async
         //todo: DI
         //todo: some configuration lib
         //todo: threading
