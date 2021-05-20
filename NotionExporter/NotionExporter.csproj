@@ -74,6 +74,7 @@
   <ItemGroup>
     <Compile Include="ActionExtensions.cs" />
     <Compile Include="DropboxClientWrapper.cs" />
+    <Compile Include="JobExecutor.cs" />
     <Compile Include="NotionApiClient.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

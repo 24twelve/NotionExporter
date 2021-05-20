@@ -9,7 +9,7 @@ namespace NotionExporter
     public static class Program
     {
         //todo: nullref when taskInfo null???? - добавил эксепшн на этот случай, ловим
-        //todo: make it app and make periodic jobs
+        //todo: control file count in dropbox folder
         //todo: reduce unholy mess with cancelattion and loops
         //todo: make it webapp
         //todo: DI
@@ -20,17 +20,11 @@ namespace NotionExporter
         public static void Main()
         {
             ConfigureLogging();
-            ConfigureCancellation();
-
+            var cancellationTokenSource = ConfigureCancellation();
             try
             {
-                while (!CancellationTokenSource.IsCancellationRequested)
-                {
-                    ExportAndBackupNotionWorkspace();
-                    var jobTimeout = TimeSpan.FromMinutes(30);
-                    Log.Information("Job finished, sleeping for {0}", jobTimeout);
-                    Thread.Sleep(jobTimeout);
-                }
+                new JobExecutor("ExportAndBackupNotion", ExportAndBackupNotionWorkspace,
+                    TimeSpan.FromMinutes(30), cancellationTokenSource).Run();
             }
             catch (Exception e)
             {
@@ -43,13 +37,15 @@ namespace NotionExporter
             }
         }
 
-        private static void ConfigureCancellation()
+        private static CancellationTokenSource ConfigureCancellation()
         {
+            var cts = new CancellationTokenSource();
             Console.CancelKeyPress += (s, e) =>
             {
-                CancellationTokenSource.Cancel();
+                cts.Cancel();
                 e.Cancel = true;
             };
+            return cts;
         }
 
         private static void ConfigureLogging()
@@ -62,7 +58,7 @@ namespace NotionExporter
             Log.Information("Logging started.");
         }
 
-        private static void ExportAndBackupNotionWorkspace()
+        private static void ExportAndBackupNotionWorkspace(CancellationTokenSource cancellationTokenSource)
         {
             var now = DateTime.Now;
             var notionAccessToken =
@@ -74,13 +70,13 @@ namespace NotionExporter
 
             Log.Information("Begin Notion export for {now}", now);
             var taskId = notionClient.PostEnqueueExportWorkspaceTask(workspaceId);
-            while (!CancellationTokenSource.IsCancellationRequested)
+            while (!cancellationTokenSource.IsCancellationRequested)
             {
                 var taskInfo = notionClient.PostGetTaskInfo(taskId);
                 while (taskInfo.State == TaskState.InProgress)
                 {
                     Log.Information("Exported notes: {0}", taskInfo.ProgressStatus.PagesExported);
-                    if (CancellationTokenSource.IsCancellationRequested)
+                    if (cancellationTokenSource.IsCancellationRequested)
                     {
                         Log.Information("Cancellation requested. Stopping...");
                         break;
@@ -90,7 +86,7 @@ namespace NotionExporter
                     taskInfo = notionClient.PostGetTaskInfo(taskId);
                 }
 
-                if (CancellationTokenSource.IsCancellationRequested)
+                if (cancellationTokenSource.IsCancellationRequested)
                 {
                     Log.Information("Cancellation requested. Stopping...");
                     break;
@@ -109,7 +105,5 @@ namespace NotionExporter
                     JsonConvert.SerializeObject(taskInfo, Formatting.Indented));
             }
         }
-
-        private static readonly CancellationTokenSource CancellationTokenSource = new CancellationTokenSource();
     }
 }
