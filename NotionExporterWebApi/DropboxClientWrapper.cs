@@ -1,11 +1,12 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Dropbox.Api;
 using Dropbox.Api.Files;
 using Serilog;
 
-namespace NotionExporter
+namespace NotionExporterWebApi
 {
     public class DropboxClientWrapper
     {
@@ -14,7 +15,7 @@ namespace NotionExporter
             dropboxClient = new DropboxClient(authToken);
         }
 
-        public void UploadFileAndRotateOldFiles(string fileName, byte[] content, DateTime now)
+        public async Task UploadFileAndRotateOldFilesAsync(string fileName, byte[] content, DateTime now)
         {
             var expirationTimespan = TimeSpan.FromDays(10);
             var oldFileThreshold = now - expirationTimespan;
@@ -22,7 +23,8 @@ namespace NotionExporter
 
             //note: if some problem with a lot of files occur, use has_more field and iterate through all
             //note: we assume that update date == creation date because we never modify stored .zip files
-            var oldFiles = dropboxClient.Files.ListFolderAsync("").GetAwaiter().GetResult().Entries
+            var allFiles = await dropboxClient.Files.ListFolderAsync("").ConfigureAwait(false);
+            var oldFiles = allFiles.Entries
                 .Where(x => x.IsFile)
                 .Select(x => x.AsFile)
                 .Where(x => x.ServerModified < oldFileThreshold ||
@@ -34,10 +36,11 @@ namespace NotionExporter
             if (oldFiles.Length > 0)
             {
                 Log.Information("Deleting {filesToRemove.Length} old files", oldFiles.Length);
-                dropboxClient.Files.DeleteBatchAsync(oldFiles).GetAwaiter().GetResult();
+                await dropboxClient.Files.DeleteBatchAsync(oldFiles).ConfigureAwait(false);
             }
 
-            var excessFiles = dropboxClient.Files.ListFolderAsync("").GetAwaiter().GetResult().Entries
+            allFiles = await dropboxClient.Files.ListFolderAsync("").ConfigureAwait(false);
+            var excessFiles = allFiles.Entries
                 .Where(x => x.IsFile)
                 .Select(x => x.AsFile)
                 .OrderByDescending(x => x.ServerModified)
@@ -50,12 +53,14 @@ namespace NotionExporter
             if (excessFiles.Length > 0)
             {
                 Log.Information("Deleting {0} excess files", excessFiles.Length);
-                dropboxClient.Files.DeleteBatchAsync(excessFiles).GetAwaiter().GetResult();
+                await dropboxClient.Files.DeleteBatchAsync(excessFiles).ConfigureAwait(false);
             }
 
             fileName = $"/{fileName}";
-            ActionExtensions.ExecuteWithRetries(() =>
-                dropboxClient.Files.UploadAsync(fileName, body: new MemoryStream(content)).GetAwaiter().GetResult());
+            await ActionExtensions.ExecuteWithRetriesAsync(async () =>
+                    await dropboxClient.Files.UploadAsync(fileName, body: new MemoryStream(content))
+                        .ConfigureAwait(false))
+                .ConfigureAwait(false);
         }
 
         private readonly DropboxClient dropboxClient;

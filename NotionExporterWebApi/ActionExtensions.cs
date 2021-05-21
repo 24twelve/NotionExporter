@@ -1,18 +1,19 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Serilog;
 
-namespace NotionExporter
+namespace NotionExporterWebApi
 {
     public static class ActionExtensions
     {
-        public static T ExecuteWithRetries<T>(Func<T> action)
+        public static async Task<T> ExecuteWithRetriesAsync<T>(Func<Task<T>> action)
         {
             var tryCount = 0;
             while (true)
             {
                 try
                 {
-                    var result = action();
+                    var result = await action().ConfigureAwait(false);
                     if (result != null)
                     {
                         return result;

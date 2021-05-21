@@ -5,11 +5,12 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Runtime.Serialization;
 using System.Text;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using static NotionExporter.ActionExtensions;
+using static NotionExporterWebApi.ActionExtensions;
 
-namespace NotionExporter
+namespace NotionExporterWebApi
 {
     public class NotionApiClient : IDisposable
     {
@@ -33,11 +34,12 @@ namespace NotionExporter
             httpClient.Dispose();
         }
 
-        public string PostEnqueueExportWorkspaceTask(string workspaceId)
+        public async Task<string> PostEnqueueExportWorkspaceTaskAsync(string workspaceId)
         {
             var request = new EnqueueTaskExportSpaceRequest(workspaceId);
-            var result = MakePostRequestWithRetries<EnqueueTaskExportSpaceRequest, EnqueueTaskResult>("enqueueTask",
-                request);
+            var result = await MakePostRequestWithRetriesAsync<EnqueueTaskExportSpaceRequest, EnqueueTaskResult>(
+                "enqueueTask",
+                request).ConfigureAwait(false);
             if (result.TaskId == null)
             {
                 throw new WebException(
@@ -47,10 +49,10 @@ namespace NotionExporter
             return result.TaskId;
         }
 
-        public GetTaskInfoResult PostGetTaskInfo(string taskId)
+        public async Task<GetTaskInfoResult> PostGetTaskInfoAsync(string taskId)
         {
-            var result = MakePostRequestWithRetries<GetTaskInfoRequest, GetTaskInfoResults>("getTasks",
-                new GetTaskInfoRequest(taskId));
+            var result = await MakePostRequestWithRetriesAsync<GetTaskInfoRequest, GetTaskInfoResults>("getTasks",
+                new GetTaskInfoRequest(taskId)).ConfigureAwait(false);
             if (!result.Results.Any())
             {
                 throw new WebException($"Notion did not return task info for task id {taskId}");
@@ -60,30 +62,30 @@ namespace NotionExporter
         }
 
 
-        public byte[] GetExportedWorkspaceZip(string downloadUrl)
+        public Task<byte[]> GetExportedWorkspaceZipAsync(string downloadUrl)
         {
-            return ExecuteWithRetries(() => httpClient.GetByteArrayAsync(downloadUrl).GetAwaiter().GetResult());
+            return ExecuteWithRetriesAsync(async () =>
+                await httpClient.GetByteArrayAsync(downloadUrl).ConfigureAwait(false));
         }
 
-        private TContentResult MakePostRequestWithRetries<TRequest, TContentResult>(string relativeUrl,
+        private async Task<TContentResult> MakePostRequestWithRetriesAsync<TRequest, TContentResult>(string relativeUrl,
             TRequest request)
         {
-            var result = ExecuteWithRetries(() => httpClient.SendAsync(
+            var result = await ExecuteWithRetriesAsync(async () => await httpClient.SendAsync(
                 new HttpRequestMessage(HttpMethod.Post, $"{BaseUrl}/{relativeUrl}")
                 {
                     Content = new StringContent(JsonConvert.SerializeObject(request, Formatting.Indented),
                         Encoding.UTF8, "application/json")
-                }).GetAwaiter().GetResult());
+                }).ConfigureAwait(false)).ConfigureAwait(false);
 
             if (result.StatusCode != HttpStatusCode.OK)
             {
                 throw new WebException($"HTTP request unsuccessful. {result}");
             }
 
-            var contentResult = ExecuteWithRetries(
-                () => JsonConvert.DeserializeObject<TContentResult>(result.Content
-                    .ReadAsStringAsync().GetAwaiter()
-                    .GetResult()));
+            var contentResult = await ExecuteWithRetriesAsync(
+                async () => JsonConvert.DeserializeObject<TContentResult>(await result.Content
+                    .ReadAsStringAsync().ConfigureAwait(false))).ConfigureAwait(false);
 
             return contentResult!;
         }
