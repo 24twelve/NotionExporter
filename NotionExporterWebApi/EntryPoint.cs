@@ -19,7 +19,7 @@ namespace NotionExporterWebApi
                 .Enrich.WithThreadId()
                 .WriteTo.Console(outputTemplate: outputTemplate)
                 .WriteTo.File("bin/logs/log.txt", rollingInterval: RollingInterval.Day, outputTemplate:
-                    outputTemplate)
+                    outputTemplate, rollOnFileSizeLimit: true, fileSizeLimitBytes: 52_428_800)
                 .CreateLogger();
             Extensions.Log.For("EntryPoint").Information("Logging started.");
             CreateHostBuilder(args).Build().Run();
