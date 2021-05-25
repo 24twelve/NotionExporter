@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Serilog;
 
 namespace NotionExporterWebApi
 {
@@ -21,14 +20,14 @@ namespace NotionExporterWebApi
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-                Log.Information($"Starting job {jobName}");
+                Log.For(this).Information($"Starting job {jobName}");
                 await job(cancellationToken).ConfigureAwait(false);
                 if (cancellationToken.IsCancellationRequested)
                 {
                     break;
                 }
 
-                Log.Information($"Job {jobName} finished, sleeping for {{0}}", period);
+                Log.For(this).Information($"Job {jobName} finished, sleeping for {{0}}", period);
                 Thread.Sleep(period);
             }
         }

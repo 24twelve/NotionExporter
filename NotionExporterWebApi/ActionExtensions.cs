@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Serilog;
 
 namespace NotionExporterWebApi
 {
@@ -23,7 +22,7 @@ namespace NotionExporterWebApi
                 }
                 catch (Exception e)
                 {
-                    Log.Error("Encountered exception {e} on try {tryCount}", e, tryCount);
+                    Log.For(nameof(ActionExtensions)).Error("Encountered exception {e} on try {tryCount}", e, tryCount);
                     if (tryCount >= 3)
                     {
                         throw;

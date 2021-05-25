@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dropbox.Api;
 using Dropbox.Api.Files;
-using Serilog;
 
 namespace NotionExporterWebApi
 {
@@ -31,11 +30,11 @@ namespace NotionExporterWebApi
                             x.ClientModified < oldFileThreshold)
                 .Select(x => new DeleteArg(x.PathLower))
                 .ToArray();
-            Log.Information("Found {count} files older than {oldFileThreshold}", oldFiles.Length,
+            Log.For(this).Information("Found {count} files older than {oldFileThreshold}", oldFiles.Length,
                 oldFileThreshold);
             if (oldFiles.Length > 0)
             {
-                Log.Information("Deleting {filesToRemove.Length} old files", oldFiles.Length);
+                Log.For(this).Information("Deleting {filesToRemove.Length} old files", oldFiles.Length);
                 await dropboxClient.Files.DeleteBatchAsync(oldFiles).ConfigureAwait(false);
             }
 
@@ -48,11 +47,12 @@ namespace NotionExporterWebApi
                 .Select(x => new DeleteArg(x.PathLower))
                 .ToArray();
 
-            Log.Information("Found {count} files more than allowed number {countThreshold}", excessFiles.Length,
+            Log.For(this).Information("Found {count} files more than allowed number {countThreshold}",
+                excessFiles.Length,
                 countThreshold);
             if (excessFiles.Length > 0)
             {
-                Log.Information("Deleting {0} excess files", excessFiles.Length);
+                Log.For(this).Information("Deleting {0} excess files", excessFiles.Length);
                 await dropboxClient.Files.DeleteBatchAsync(excessFiles).ConfigureAwait(false);
             }
 

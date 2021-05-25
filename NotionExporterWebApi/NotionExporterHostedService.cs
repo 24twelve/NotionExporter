@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
-using Serilog;
 
 namespace NotionExporterWebApi
 {
@@ -32,7 +31,7 @@ namespace NotionExporterWebApi
             var notionClient = new NotionApiClient(notionAccessToken);
 
 
-            Log.Information("Begin Notion export for {now}", now);
+            Log.For(this).Information("Begin Notion export for {now}", now);
             var taskId = await notionClient.PostEnqueueExportWorkspaceTaskAsync(workspaceId).ConfigureAwait(false);
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -41,12 +40,12 @@ namespace NotionExporterWebApi
                 {
                     if (taskInfo.ProgressStatus != null)
                     {
-                        Log.Information("Exported notes: {0}", taskInfo.ProgressStatus.PagesExported);
+                        Log.For(this).Information("Exported notes: {0}", taskInfo.ProgressStatus.PagesExported);
                     }
 
                     if (cancellationToken.IsCancellationRequested)
                     {
-                        Log.Information("Cancellation requested. Stopping...");
+                        Log.For(this).Information("Cancellation requested. Stopping...");
                         break;
                     }
 
@@ -57,7 +56,7 @@ namespace NotionExporterWebApi
                 //todo: reduce unholy mess with cancelattion and loops
                 if (cancellationToken.IsCancellationRequested)
                 {
-                    Log.Information("Cancellation requested. Stopping...");
+                    Log.For(this).Information("Cancellation requested. Stopping...");
                     break;
                 }
 
@@ -67,11 +66,11 @@ namespace NotionExporterWebApi
                         .ConfigureAwait(false);
                     var path = $"NotionExport-{now:dd-MM-yyyy-hh-mm-ss}.zip";
                     await dropboxClient.UploadFileAndRotateOldFilesAsync(path, content, now);
-                    Log.Information("Successfully backed up {0}", path);
+                    Log.For(this).Information("Successfully backed up {0}", path);
                     break;
                 }
 
-                Log.Error("Something unexpected happened. Task state: {0}",
+                Log.For(this).Error("Something unexpected happened. Task state: {0}",
                     JsonConvert.SerializeObject(taskInfo, Formatting.Indented));
             }
         }

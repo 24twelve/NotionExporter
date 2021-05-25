@@ -5,20 +5,23 @@ using Serilog.Events;
 
 namespace NotionExporterWebApi
 {
-    public static class Program
+    public static class EntryPoint
     {
-        //todo: ctrl+c cancellation
-        //todo: logging context and thread id
+        //todo:  //"not started job fix
         //todo: correct thorough async and thread pool
         public static void Main(string[] args)
         {
-            Log.Logger = new LoggerConfiguration()
+            const string outputTemplate =
+                "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] [{SourceContext}] [T-{ThreadId}] {Message:lj} {NewLine}{Exception}";
+            Serilog.Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
                 .Enrich.FromLogContext()
-                .WriteTo.Console()
-                .WriteTo.File("bin/logs/log.txt", rollingInterval: RollingInterval.Minute)
+                .Enrich.WithThreadId()
+                .WriteTo.Console(outputTemplate: outputTemplate)
+                .WriteTo.File("bin/logs/log.txt", rollingInterval: RollingInterval.Day, outputTemplate:
+                    outputTemplate)
                 .CreateLogger();
-            Log.Information("Logging started.");
+            Log.For("EntryPoint").Information("Logging started.");
             CreateHostBuilder(args).Build().Run();
         }
 
