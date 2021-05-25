@@ -13,7 +13,7 @@ namespace NotionExporterWebApi
         {
             const string outputTemplate =
                 "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] [{SourceContext}] [T-{ThreadId}] {Message:lj} {NewLine}{Exception}";
-            Serilog.Log.Logger = new LoggerConfiguration()
+            Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
                 .Enrich.FromLogContext()
                 .Enrich.WithThreadId()
@@ -21,7 +21,7 @@ namespace NotionExporterWebApi
                 .WriteTo.File("bin/logs/log.txt", rollingInterval: RollingInterval.Day, outputTemplate:
                     outputTemplate)
                 .CreateLogger();
-            Log.For("EntryPoint").Information("Logging started.");
+            Extensions.Log.For("EntryPoint").Information("Logging started.");
             CreateHostBuilder(args).Build().Run();
         }
 

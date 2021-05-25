@@ -8,9 +8,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using static NotionExporterWebApi.ActionExtensions;
+using static NotionExporterWebApi.Extensions.ActionExtensions;
 
-namespace NotionExporterWebApi
+namespace NotionExporterWebApi.Clients
 {
     public class NotionApiClient : IDisposable
     {

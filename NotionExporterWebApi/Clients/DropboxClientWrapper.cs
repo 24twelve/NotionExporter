@@ -4,8 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dropbox.Api;
 using Dropbox.Api.Files;
+using NotionExporterWebApi.Extensions;
 
-namespace NotionExporterWebApi
+namespace NotionExporterWebApi.Clients
 {
     public class DropboxClientWrapper
     {

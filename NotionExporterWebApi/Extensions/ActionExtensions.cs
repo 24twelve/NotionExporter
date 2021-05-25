@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace NotionExporterWebApi
+namespace NotionExporterWebApi.Extensions
 {
     public static class ActionExtensions
     {

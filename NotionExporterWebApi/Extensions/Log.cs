@@ -1,7 +1,7 @@
 ﻿using Serilog;
 using Serilog.Core;
 
-namespace NotionExporterWebApi
+namespace NotionExporterWebApi.Extensions
 {
     public static class Log
     {
