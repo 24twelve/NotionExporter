@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using NotionExporterWebApi.Services;
 
 namespace NotionExporterWebApi
 {
@@ -23,6 +24,7 @@ namespace NotionExporterWebApi
                 c.SwaggerDoc("v1", new OpenApiInfo {Title = "NotionExporterWebApi", Version = "v1"});
             });
             services.AddHostedService<NotionExporterHostedService>();
+            services.AddHostedService<ApplicationStateLoggingService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

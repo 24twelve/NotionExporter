@@ -6,7 +6,7 @@ using Microsoft.Extensions.Hosting;
 using NotionExporterWebApi.Clients;
 using NotionExporterWebApi.Extensions;
 
-namespace NotionExporterWebApi
+namespace NotionExporterWebApi.Services
 {
     public class NotionExporterHostedService : BackgroundService
     {
@@ -37,7 +37,8 @@ namespace NotionExporterWebApi
             while (!cancellationToken.IsCancellationRequested)
             {
                 var taskInfo = await notionClient.PostGetTaskInfoAsync(taskId).ConfigureAwait(false);
-                while (taskInfo.State != TaskState.Success) //todo: handle neverending tasks
+                while (taskInfo.State != TaskState.Success
+                ) //todo: handle neverending tasks - good place for rtq or such thing
                 {
                     if (taskInfo.ProgressStatus != null)
                     {

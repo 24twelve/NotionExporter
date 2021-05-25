@@ -7,8 +7,9 @@ namespace NotionExporterWebApi
 {
     public static class EntryPoint
     {
-        //todo:  //"not started job fix
-        //todo: correct thorough async and thread pool
+        //todo: correct thorough async
+        //todo: ping with current export state
+        //todo: read out memry traffic places
         public static void Main(string[] args)
         {
             const string outputTemplate =
@@ -22,6 +23,9 @@ namespace NotionExporterWebApi
                     outputTemplate, rollOnFileSizeLimit: true, fileSizeLimitBytes: 52_428_800)
                 .CreateLogger();
             Extensions.Log.For("EntryPoint").Information("Logging started.");
+
+            ThreadPoolUtility.SetUp();
+
             CreateHostBuilder(args).Build().Run();
         }
 
