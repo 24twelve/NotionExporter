@@ -7,8 +7,8 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using static NotionExporterWebApi.Extensions.ActionExtensions;
+using JsonSerializer = NotionExporterWebApi.Extensions.JsonSerializer;
 
 namespace NotionExporterWebApi.Clients
 {
@@ -43,7 +43,7 @@ namespace NotionExporterWebApi.Clients
             if (result.TaskId == null)
             {
                 throw new WebException(
-                    $"Notion did not return task id for request {JsonConvert.SerializeObject(request)}");
+                    $"Notion did not return task id for request {JsonSerializer.SerializeObject(request)}");
             }
 
             return result.TaskId;
@@ -69,12 +69,12 @@ namespace NotionExporterWebApi.Clients
         }
 
         private async Task<TContentResult> MakePostRequestWithRetriesAsync<TRequest, TContentResult>(string relativeUrl,
-            TRequest request)
+            TRequest request) where TContentResult : class
         {
             var result = await ExecuteWithRetriesAsync(async () => await httpClient.SendAsync(
                 new HttpRequestMessage(HttpMethod.Post, $"{BaseUrl}/{relativeUrl}")
                 {
-                    Content = new StringContent(JsonConvert.SerializeObject(request, Formatting.Indented),
+                    Content = new StringContent(JsonSerializer.SerializeObject(request),
                         Encoding.UTF8, "application/json")
                 }).ConfigureAwait(false)).ConfigureAwait(false);
 
@@ -84,7 +84,7 @@ namespace NotionExporterWebApi.Clients
             }
 
             var contentResult = await ExecuteWithRetriesAsync(
-                async () => JsonConvert.DeserializeObject<TContentResult>(await result.Content
+                async () => JsonSerializer.DeserializeObject<TContentResult>(await result.Content
                     .ReadAsStringAsync().ConfigureAwait(false))).ConfigureAwait(false);
 
             return contentResult!;
@@ -119,24 +119,24 @@ namespace NotionExporterWebApi.Clients
     public class GetTaskInfoResult
     {
         [JsonProperty("id")] public string? TaskId { get; set; }
-        [JsonProperty("state")] public TaskState State { get; set; }
+        [JsonProperty("state")] public TaskState? State { get; set; }
         [JsonProperty("status")] public ProgressStatus? ProgressStatus { get; set; }
     }
 
     public class ProgressStatus
     {
         [JsonProperty("pagesExported")] public int? PagesExported { get; set; }
-        [JsonProperty("type")] public StatusType? Type { get; set; } //sic!
+        [JsonProperty("type")] public StatusType? Type { get; set; }
         [JsonProperty("exportURL")] public string? ExportUrl { get; set; }
     }
 
+
     public enum StatusType
     {
-        [EnumMember(Value = "complete")] Complete,
-        [EnumMember(Value = "progress")] Progress //todo: treat unknown enum values as nulls
+        [EnumMember(Value = "complete")] Complete
     }
 
-    [JsonConverter(typeof(StringEnumConverter))]
+
     public enum TaskState
     {
         [EnumMember(Value = "in_progress")] InProgress,

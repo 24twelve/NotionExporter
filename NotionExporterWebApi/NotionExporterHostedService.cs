@@ -3,7 +3,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
-using Newtonsoft.Json;
 using NotionExporterWebApi.Clients;
 using NotionExporterWebApi.Extensions;
 
@@ -38,7 +37,7 @@ namespace NotionExporterWebApi
             while (!cancellationToken.IsCancellationRequested)
             {
                 var taskInfo = await notionClient.PostGetTaskInfoAsync(taskId).ConfigureAwait(false);
-                while (taskInfo.State == TaskState.InProgress)
+                while (taskInfo.State != TaskState.Success) //todo: handle neverending tasks
                 {
                     if (taskInfo.ProgressStatus != null)
                     {
@@ -62,7 +61,7 @@ namespace NotionExporterWebApi
                     break;
                 }
 
-                if (taskInfo.State == TaskState.Success && taskInfo.ProgressStatus!.Type == StatusType.Complete)
+                if (taskInfo.ProgressStatus!.Type == StatusType.Complete)
                 {
                     var content = await notionClient.GetExportedWorkspaceZipAsync(taskInfo.ProgressStatus!.ExportUrl!)
                         .ConfigureAwait(false);
@@ -73,7 +72,7 @@ namespace NotionExporterWebApi
                 }
 
                 Log.For(this).Error("Something unexpected happened. Task state: {0}",
-                    JsonConvert.SerializeObject(taskInfo, Formatting.Indented));
+                    JsonSerializer.SerializeObject(taskInfo));
             }
         }
     }
