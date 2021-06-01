@@ -7,6 +7,7 @@ namespace NotionExporterWebApi
 {
     public static class EntryPoint
     {
+        //todo: nice deploy script on linux and nice logs filepath
         //todo: correct thorough async
         //todo: ping with current export state
         //todo: read out memry traffic places
@@ -33,6 +34,7 @@ namespace NotionExporterWebApi
         {
             return Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); })
+                .UseSystemd() //todo: use IF LINUX
                 .UseSerilog();
         }
     }
