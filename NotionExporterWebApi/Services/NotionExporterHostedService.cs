@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
@@ -21,19 +20,13 @@ namespace NotionExporterWebApi.Services
         private async Task ExportAndBackupNotionWorkspace(CancellationToken cancellationToken)
         {
             var now = DateTime.Now;
-            var notionAccessToken =
-                await File.ReadAllTextAsync("secrets/token_v2",
-                    cancellationToken).ConfigureAwait(false); //note: it seems that token_v2 cookie never expire
-            var workspaceId = await File.ReadAllTextAsync("secrets/workspace_id", cancellationToken)
-                .ConfigureAwait(false);
-            var dropboxAccessToken = await File.ReadAllTextAsync("secrets/dropbox_access_token", cancellationToken)
-                .ConfigureAwait(false);
-            var dropboxClient = new DropboxClientWrapper(dropboxAccessToken);
-            var notionClient = new NotionApiClient(notionAccessToken);
+            var dropboxClient = new DropboxClientWrapper(Config.DropboxAccessToken);
+            var notionClient = new NotionApiClient(Config.NotionTokenV2);
 
 
             Log.For(this).Information("Begin Notion export for {now}", now);
-            var taskId = await notionClient.PostEnqueueExportWorkspaceTaskAsync(workspaceId).ConfigureAwait(false);
+            var taskId = await notionClient.PostEnqueueExportWorkspaceTaskAsync(Config.NotionWorkspaceId)
+                .ConfigureAwait(false);
             while (!cancellationToken.IsCancellationRequested)
             {
                 var taskInfo = await notionClient.PostGetTaskInfoAsync(taskId).ConfigureAwait(false);

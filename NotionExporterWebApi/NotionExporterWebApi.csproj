@@ -17,15 +17,11 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="secrets\dropbox_access_token">
+      <Content Update="secrets\config-development.json">
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-      <None Update="secrets\token_v2">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-      <None Update="secrets\workspace_id">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </Content>
     </ItemGroup>
 
 </Project>

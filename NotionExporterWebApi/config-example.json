@@ -1,0 +1,7 @@
+﻿{
+  "dropbox-access-token": "",
+  "notion-token-v2": "",
+  "notion-workspace-id": "",
+  "username": "",
+  "log-path": "bin/logs/log.txt"
+}

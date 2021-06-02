@@ -14,7 +14,7 @@ namespace NotionExporterWebApi.Clients
 {
     public class NotionApiClient : IDisposable
     {
-        public NotionApiClient(string token)
+        public NotionApiClient(string tokenV2)
         {
             var cookieContainer = new CookieContainer();
             var httpHandler = new HttpClientHandler { CookieContainer = cookieContainer };
@@ -26,7 +26,7 @@ namespace NotionExporterWebApi.Clients
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             cookieContainer.Add(httpClient.BaseAddress,
                 new Cookie("token_v2",
-                    token));
+                    tokenV2));
         }
 
 
