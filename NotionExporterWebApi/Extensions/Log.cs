@@ -12,7 +12,7 @@ namespace NotionExporterWebApi.Extensions
 
         public static ILogger For(string contextName)
         {
-            return Serilog.Log.ForContext(propertyName: Constants.SourceContextPropertyName, contextName);
+            return Serilog.Log.ForContext(Constants.SourceContextPropertyName, contextName);
         }
     }
 }

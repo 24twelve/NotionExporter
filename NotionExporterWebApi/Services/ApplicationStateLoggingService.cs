@@ -11,7 +11,7 @@ namespace NotionExporterWebApi.Services
         public Task StartAsync(CancellationToken cancellationToken)
         {
             timer = new Timer(
-                x => Log.For("ThreadPool").Information(ThreadPoolUtility.GetThreadPoolState().ToString()), state: null,
+                x => Log.For("ThreadPool").Information(ThreadPoolUtility.GetThreadPoolState().ToString()), null,
                 period: TimeSpan.FromMinutes(1), dueTime: TimeSpan.Zero);
             return Task.CompletedTask;
         }

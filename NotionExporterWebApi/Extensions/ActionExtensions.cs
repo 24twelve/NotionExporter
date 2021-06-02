@@ -9,7 +9,6 @@ namespace NotionExporterWebApi.Extensions
         {
             var tryCount = 0;
             while (true)
-            {
                 try
                 {
                     var result = await action().ConfigureAwait(false);
@@ -28,7 +27,6 @@ namespace NotionExporterWebApi.Extensions
                         throw;
                     }
                 }
-            }
         }
     }
 }
