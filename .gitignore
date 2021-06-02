@@ -39,3 +39,4 @@ x64/
 **/secrets/*
 
 **/logs/*
+**/deploy/**
