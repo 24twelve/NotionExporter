@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Reflection;
+﻿using System.Reflection;
 using Microsoft.AspNetCore.Mvc;
 
 namespace NotionExporterWebApi.Controllers
@@ -12,11 +10,8 @@ namespace NotionExporterWebApi.Controllers
         [HttpGet]
         public string Get()
         {
-            var assembly = Assembly.GetExecutingAssembly();
-            var attr = (AssemblyInformationalVersionAttribute) assembly.GetCustomAttribute(
-                typeof(AssemblyInformationalVersionAttribute))!;
-            return attr.InformationalVersion;
+            return ((AssemblyInformationalVersionAttribute) Assembly.GetExecutingAssembly().GetCustomAttribute(
+                typeof(AssemblyInformationalVersionAttribute))!).InformationalVersion;
         }
-        
     }
 }
