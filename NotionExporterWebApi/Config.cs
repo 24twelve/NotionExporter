@@ -15,13 +15,11 @@ namespace NotionExporterWebApi
             NotionTokenV2 = dto!.NotionTokenV2!;
             DropboxAccessToken = dto!.DropboxAccessToken!;
             NotionWorkspaceId = dto!.NotionWorkspaceId!;
-            UserName = dto!.UserName!;
             LogPath = dto!.LogPath!;
             RawConfig = dto;
 
             RawConfig.DropboxAccessToken = "SECRET";
             RawConfig.NotionTokenV2 = "SECRET";
-            RawConfig.UserName = "SECRET";
             RawConfig.NotionWorkspaceId = "SECRET";
         }
 
@@ -60,11 +58,6 @@ namespace NotionExporterWebApi
                 throw new Exception("Null config option NotionWorkspaceId");
             }
 
-            if (string.IsNullOrEmpty(configDto.UserName))
-            {
-                throw new Exception("Null config option UserName");
-            }
-
             if (string.IsNullOrEmpty(configDto.LogPath))
             {
                 throw new Exception("Null config option LogPath");
@@ -78,8 +71,6 @@ namespace NotionExporterWebApi
         public static string DropboxAccessToken { get; set; } = "";
 
         public static string NotionWorkspaceId { get; set; } = "";
-
-        public static string UserName { get; set; } = "";
 
         public static string LogPath { get; set; } = "";
 
@@ -99,9 +90,6 @@ namespace NotionExporterWebApi
 
         [JsonProperty("notion-workspace-id")]
         public string? NotionWorkspaceId { get; set; }
-
-        [JsonProperty("username")]
-        public string? UserName { get; set; }
 
         [JsonProperty("log-path")]
         public string? LogPath { get; set; }

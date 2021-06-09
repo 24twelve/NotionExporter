@@ -16,7 +16,7 @@ namespace NotionExporterWebApi
         //todo: read out memry traffic places
         public static void Main(string[] args)
         {
-            Config.InitConfig(File.ReadAllText("secrets/config.json"));
+            Config.InitConfig(File.ReadAllText("secrets/runtime-config.json"));
             ThreadPoolUtility.SetUp();
             InitLogging();
             Log.For("EntryPoint").Information("Logging started.");
