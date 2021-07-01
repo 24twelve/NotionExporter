@@ -12,11 +12,10 @@ namespace NotionExporterWebApi.Services
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             var jobExecutor = new JobExecutor("ExportAndBackupNotion", ExportAndBackupNotionWorkspace,
-                TimeSpan.FromDays(1), stoppingToken);
-            await jobExecutor.RunAsync().ConfigureAwait(false);
+                TimeSpan.FromDays(1), TimeSpan.FromHours(1), stoppingToken);
+            await jobExecutor.Run();
         }
 
-        //todo: probably return some task?
         private async Task ExportAndBackupNotionWorkspace(CancellationToken cancellationToken)
         {
             var now = DateTime.Now;
@@ -30,12 +29,12 @@ namespace NotionExporterWebApi.Services
             while (!cancellationToken.IsCancellationRequested)
             {
                 var taskInfo = await notionClient.PostGetTaskInfoAsync(taskId).ConfigureAwait(false);
-                while (taskInfo.State != TaskState.Success
-                ) //todo: handle neverending tasks - good place for rtq or such thing
+                while (taskInfo.State != TaskState.Success)
                 {
                     if (taskInfo.ProgressStatus != null)
                     {
-                        Log.For(this).Information("Exported notes: {0}", taskInfo.ProgressStatus.PagesExported);
+                        Log.For(this).Information("Exported notes: {0}. Task state: {1}",
+                            taskInfo.ProgressStatus.PagesExported, JsonSerializer.SerializeObject(taskInfo));
                     }
 
                     if (cancellationToken.IsCancellationRequested)
