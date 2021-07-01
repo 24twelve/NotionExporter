@@ -7,6 +7,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using NotionExporterWebApi.Extensions;
 using static NotionExporterWebApi.Extensions.ActionExtensions;
 using JsonSerializer = NotionExporterWebApi.Extensions.JsonSerializer;
 
@@ -76,6 +77,7 @@ namespace NotionExporterWebApi.Clients
 
             if (result.StatusCode != HttpStatusCode.OK)
             {
+                Log.For(this).Error($"HTTP request unsuccessful. {result}");
                 throw new WebException($"HTTP request unsuccessful. {result}");
             }
 
