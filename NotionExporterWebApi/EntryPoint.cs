@@ -13,6 +13,10 @@ namespace NotionExporterWebApi
         //todo: work on all ! annotations
         //todo: correct thorough async
         //todo: ping with current export state
+        //todo: ping and log with current export state
+        //todo: DI
+        //todo: really later
+        //todo: correct thorough async
         //todo: read out memry traffic places
         public static void Main(string[] args)
         {

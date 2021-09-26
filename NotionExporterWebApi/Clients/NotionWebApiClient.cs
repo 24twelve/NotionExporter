@@ -13,9 +13,9 @@ using JsonSerializer = NotionExporterWebApi.Extensions.JsonSerializer;
 
 namespace NotionExporterWebApi.Clients
 {
-    public class NotionApiClient : IDisposable
+    public class NotionWebApiClient : IDisposable
     {
-        public NotionApiClient(string tokenV2)
+        public NotionWebApiClient(string tokenV2)
         {
             var cookieContainer = new CookieContainer();
             var httpHandler = new HttpClientHandler { CookieContainer = cookieContainer };

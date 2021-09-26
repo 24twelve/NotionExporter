@@ -7,7 +7,7 @@ namespace NotionExporterWebApi.Extensions
     {
         public static ILogger For<T>(T obj)
         {
-            return Serilog.Log.ForContext(typeof(T));
+            return For(typeof(T).Name);
         }
 
         public static ILogger For(string contextName)

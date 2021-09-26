@@ -18,7 +18,7 @@ namespace NotionExporterWebApi
         }
 
 
-        public async Task Run()
+        public async Task RunAsync()
         {
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -28,9 +28,10 @@ namespace NotionExporterWebApi
                 {
                     isCompletedInTime = false;
 #pragma warning disable 1998
-                    await Task.Run(async () => isCompletedInTime = job(cancellationToken) //вот в том треде пусть и работает
+                    await Task.Run(async () => isCompletedInTime =
+                            job(cancellationToken) //вот в том треде пусть и работает
 #pragma warning restore 1998
-                            .Wait((int) timeBudget.TotalMilliseconds, cancellationToken), cancellationToken)
+                                .Wait((int) timeBudget.TotalMilliseconds, cancellationToken), cancellationToken)
                         .ConfigureAwait(false);
 
                     if (cancellationToken.IsCancellationRequested)

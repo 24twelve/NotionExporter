@@ -9,18 +9,18 @@ namespace NotionExporterWebApi.Services
 {
     public class NotionExporterHostedService : BackgroundService
     {
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
             var jobExecutor = new JobExecutor("ExportAndBackupNotion", ExportAndBackupNotionWorkspace,
-                TimeSpan.FromDays(1), TimeSpan.FromHours(1), stoppingToken);
-            await jobExecutor.Run();
+                TimeSpan.FromDays(1), TimeSpan.FromHours(1), cancellationToken);
+            await jobExecutor.RunAsync();
         }
 
         private async Task ExportAndBackupNotionWorkspace(CancellationToken cancellationToken)
         {
             var now = DateTime.Now;
             var dropboxClient = new DropboxClientWrapper(Config.DropboxAccessToken);
-            var notionClient = new NotionApiClient(Config.NotionTokenV2);
+            var notionClient = new NotionWebApiClient(Config.NotionTokenV2);
 
 
             Log.For(this).Information("Begin Notion export for {now}", now);
