@@ -17,7 +17,6 @@ namespace NotionExporterWebApi
             this.cancellationToken = cancellationToken;
         }
 
-
         public async Task RunAsync()
         {
             while (!cancellationToken.IsCancellationRequested)

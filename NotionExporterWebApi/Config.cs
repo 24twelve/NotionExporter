@@ -1,5 +1,6 @@
 ﻿using System;
 using Newtonsoft.Json;
+using NotionExporterWebApi.Extensions;
 using JsonSerializer = NotionExporterWebApi.Extensions.JsonSerializer;
 
 namespace NotionExporterWebApi
@@ -13,6 +14,7 @@ namespace NotionExporterWebApi
 
             ApplicationEnvironment = dto!.ApplicationEnvironment!.Value;
             NotionTokenV2 = dto!.NotionTokenV2!;
+            IntegrationToken = dto!.IntegrationToken!;
             DropboxAccessToken = dto!.DropboxAccessToken!;
             NotionWorkspaceId = dto!.NotionWorkspaceId!;
             LogPath = dto!.LogPath!;
@@ -21,11 +23,12 @@ namespace NotionExporterWebApi
             RawConfig.DropboxAccessToken = "SECRET";
             RawConfig.NotionTokenV2 = "SECRET";
             RawConfig.NotionWorkspaceId = "SECRET";
+            RawConfig.IntegrationToken = "SECRET";
         }
 
         public static string ToPrettyJson()
         {
-            return JsonSerializer.SerializeObject(RawConfig);
+            return RawConfig.ToPrettyJson();
         }
 
         //todo: better throw on any null property
@@ -48,6 +51,11 @@ namespace NotionExporterWebApi
                 throw new Exception("Null config option NotionTokenV2");
             }
 
+            if (string.IsNullOrEmpty(configDto.IntegrationToken))
+            {
+                throw new Exception("Null config option IntegrationToken");
+            }
+
             if (string.IsNullOrEmpty(configDto.DropboxAccessToken))
             {
                 throw new Exception("Null config option DropboxAccessToken");
@@ -68,6 +76,8 @@ namespace NotionExporterWebApi
 
         public static string NotionTokenV2 { get; set; } = "";
 
+        public static string IntegrationToken { get; set; } = "";
+
         public static string DropboxAccessToken { get; set; } = "";
 
         public static string NotionWorkspaceId { get; set; } = "";
@@ -84,6 +94,9 @@ namespace NotionExporterWebApi
 
         [JsonProperty("notion-token-v2")]
         public string? NotionTokenV2 { get; set; }
+
+        [JsonProperty("integration-token")]
+        public string? IntegrationToken { get; set; }
 
         [JsonProperty("dropbox-access-token")]
         public string? DropboxAccessToken { get; set; }

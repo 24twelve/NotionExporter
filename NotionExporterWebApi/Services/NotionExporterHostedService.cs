@@ -13,7 +13,7 @@ namespace NotionExporterWebApi.Services
         {
             var jobExecutor = new JobExecutor("ExportAndBackupNotion", ExportAndBackupNotionWorkspace,
                 TimeSpan.FromDays(1), TimeSpan.FromHours(1), cancellationToken);
-            await jobExecutor.RunAsync();
+            await jobExecutor.RunAsync().ConfigureAwait(false);
         }
 
         private async Task ExportAndBackupNotionWorkspace(CancellationToken cancellationToken)

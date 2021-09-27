@@ -6,6 +6,11 @@ namespace NotionExporterWebApi.Extensions
 {
     public static class JsonSerializer
     {
+        public static string ToPrettyJson<T>(this T obj)
+        {
+            return SerializeObject(obj);
+        }
+
         public static string SerializeObject<T>(T obj)
         {
             return JsonConvert.SerializeObject(obj, Formatting.Indented,

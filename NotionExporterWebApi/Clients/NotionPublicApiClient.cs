@@ -1,34 +1,39 @@
 ﻿using System;
-using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using Notion.Client;
 
 namespace NotionExporterWebApi.Clients
 {
-    public class NotionPublicApiClient
+    public class NotionPublicApiClient : IDisposable
     {
         public NotionPublicApiClient(string integrationToken)
         {
-            client = new NotionClient(new ClientOptions { AuthToken = integrationToken });
-        }
-
-        public async Task<Database> RetrieveDatabase(string userFriendlyDatabaseName)
-        {
-            if (tasksDatabaseId == null)
+            client = new HttpClient
             {
-                var allDatabases = (await client.Databases.ListAsync()).Results;
-                tasksDatabaseId = allDatabases
-                    .SingleOrDefault(x => x.Title.First().PlainText == userFriendlyDatabaseName)?.Id;
-                if (tasksDatabaseId == null)
-                {
-                    throw new Exception($"Could not retrieve database id for '{userFriendlyDatabaseName}'");
-                }
-            }
-
-            return await client.Databases.RetrieveAsync(tasksDatabaseId);
+                BaseAddress = new Uri(BaseUrl),
+                Timeout = TimeSpan.FromSeconds(15)
+            };
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(integrationToken);
         }
 
-        private readonly NotionClient client;
-        private string? tasksDatabaseId;
+        public async Task Authenticate()
+        {
+
+        }
+
+        public async Task RetrieveDatabase(string userFriendlyDatabaseName)
+        {
+
+        }
+
+        private const string BaseUrl = "https://api.notion.com";
+        private readonly HttpClient client;
+
+        public void Dispose()
+        {
+            //todo: check dispose called
+            client.Dispose();
+        }
     }
 }
