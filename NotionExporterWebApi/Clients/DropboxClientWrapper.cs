@@ -31,11 +31,11 @@ namespace NotionExporterWebApi.Clients
                             x.ClientModified < oldFileThreshold)
                 .Select(x => new DeleteArg(x.PathLower))
                 .ToArray();
-            Log.For(this).Information("Found {count} files older than {oldFileThreshold}", oldFiles.Length,
+            Log.For(this).Information("Found {0} files older than {1}", oldFiles.Length,
                 oldFileThreshold);
             if (oldFiles.Length > 0)
             {
-                Log.For(this).Information("Deleting {filesToRemove.Length} old files", oldFiles.Length);
+                Log.For(this).Information("Deleting {0} old files", oldFiles.Length);
                 await dropboxClient.Files.DeleteBatchAsync(oldFiles).ConfigureAwait(false);
             }
 
@@ -62,6 +62,7 @@ namespace NotionExporterWebApi.Clients
                     await dropboxClient.Files.UploadAsync(fileName, body: new MemoryStream(content))
                         .ConfigureAwait(false))
                 .ConfigureAwait(false);
+            Log.For(this).Information("Saved {0}", fileName);
         }
 
         private readonly DropboxClient dropboxClient;
