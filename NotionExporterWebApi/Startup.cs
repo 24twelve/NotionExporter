@@ -24,7 +24,6 @@ namespace NotionExporterWebApi
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "NotionExporterWebApi", Version = "v1" });
             });
             services.AddHostedService<NotionExporterHostedService>();
-            services.AddHostedService<NotionRecurringTasksHostedService>();
             services.AddHostedService<ApplicationStateLoggingService>();
         }
 

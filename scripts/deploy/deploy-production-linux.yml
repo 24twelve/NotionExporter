@@ -1,0 +1,89 @@
+---
+- name: Publish, deploy and start service
+  hosts: production
+  vars: 
+    get_version_endpoint: "http://localhost:5000/api/version/"
+
+    #src paths
+    src_base_path:  "{{ playbook_dir }}/../.."
+    src_publish_path: "{{ src_base_path }}/deploy"
+    src_secrets_path: "{{ src_publish_path }}/secrets"
+    src_systemd_service_path: "{{ src_secrets_path }}/notion-exporter.service" 
+
+    #dst paths
+    dst_base_path: /opt/NotionExporter
+    dst_deployments_path: "{{ dst_base_path }}/deploy"
+    dst_current_symlink_path: "{{ dst_base_path }}/current"
+    dst_systemd_config_path: /etc/systemd/system/
+
+  tasks:
+    - name: Retrieve current git commit
+      shell: 
+        cmd: "git rev-parse HEAD"
+      register: git_version
+      delegate_to: localhost
+
+    - name: Register deployment path
+      set_fact: dst_current_deployment_path="{{ dst_deployments_path }}/{{ git_version.stdout }}"
+
+    - name: Create deployment path
+      file:
+        path: "{{ dst_current_deployment_path }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        mode: '0733'
+      become: true
+
+    - name: Install latest version of rsync on remote host
+      apt:
+        name: rsync
+        state: present
+      become: true
+
+    - name: Copy deployment to target from {{ src_publish_path }} to {{ dst_current_deployment_path }}
+      synchronize:
+        src: "{{ src_publish_path }}/"
+        dest: "{{ dst_current_deployment_path }}"
+        owner: yes
+        group: yes
+        delete: yes
+
+    - name: Copy systemd file to manage the service ##todo: substitue user and other vairables
+      copy:
+        src: "{{ src_systemd_service_path }}"
+        dest: "{{ dst_systemd_config_path }}"
+        owner: "{{ ansible_user }}"
+        group: wheel
+        mode: '0644'
+        force: yes
+      become: true
+
+    - name: Switch symlink to current deployment
+      file: 
+        src: "{{ dst_current_deployment_path }}"
+        dest: "{{ dst_current_symlink_path }}"
+        state: link
+      become: true
+
+    - name: Restart service
+      systemd:
+        state: restarted
+        daemon_reload: yes
+        name: notion-exporter.service ##todo: substitue user and other vairables to make script 'generic'
+      become: true
+
+    - name: Ensure service is running
+      service: 
+        name: notion-exporter
+        state: started
+
+    - name: GET {{ get_version_endpoint }}
+      uri:
+        url: "{{ get_version_endpoint }}"
+        return_content: yes
+      register: content
+
+    - name: Fail if GET version is not current {{ git_version.stdout }}
+      fail:
+        msg: "Answer for version request does not contain expected commit hash: {{ content.content }}"
+      when:  'git_version.stdout not in content.content'

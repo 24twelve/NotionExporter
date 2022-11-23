@@ -1,0 +1,12 @@
+production:
+  vars:
+    #service_user_name: "service-user" ##fix
+    service_user_password: "" ##fix
+    root_user_password: "" ##fix
+    ansible_user: ""
+    #ansible_ssh_password: "{{ service_user_password }}"
+    ansible_ssh_private_key_file: ""
+    ansible_ssh_public_key_file: ""
+  hosts:
+    vm01:
+      ansible_host: "insert hostname or ip"

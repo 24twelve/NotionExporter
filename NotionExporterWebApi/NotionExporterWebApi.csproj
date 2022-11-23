@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
-        <TargetFramework>net5.0</TargetFramework>
+        <TargetFramework>net7.0</TargetFramework>
         <Nullable>enable</Nullable>
         <WarningsAsErrors>nullable</WarningsAsErrors>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -22,27 +22,16 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Content Update="secrets\deploy-config.json">
-        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      </Content>
-      <None Remove="secrets\notion-exporter.service" />
-      <Content Include="secrets\notion-exporter.service">
+      <Content Include="..\secrets\inventory.yml">
+        <Link>secrets\inventory.yml</Link>
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
-      <Content Update="secrets\runtime-config.json">
-        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <Content Include="..\secrets\notion-exporter.service">
+        <Link>secrets\notion-exporter.service</Link>
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       </Content>
-      <Content Update="secrets\runtime-config-production-linux.json">
-        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      </Content>
-      <None Remove="secrets\hosts.yml" />
-      <Content Include="secrets\hosts.yml">
+      <Content Include="..\secrets\runtime-config.json">
+        <Link>secrets\runtime-config.json</Link>
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
     </ItemGroup>

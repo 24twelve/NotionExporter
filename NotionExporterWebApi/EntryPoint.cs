@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
@@ -20,7 +21,7 @@ namespace NotionExporterWebApi
         //todo: read out memry traffic places
         public static void Main(string[] args)
         {
-            Config.InitConfig(File.ReadAllText("secrets/runtime-config.json"));
+            Config.InitConfig(File.ReadAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,"secrets/runtime-config.json")));
             ThreadPoolUtility.SetUp();
             InitLogging();
             Log.For("EntryPoint").Information("Logging started.");

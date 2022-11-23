@@ -1,4 +1,4 @@
-﻿# Default ignored files
+# Default ignored files
 /shelf/
 /workspace.xml
 # Rider ignored files
@@ -39,6 +39,6 @@ x64/
 **/secrets/*
 
 **/logs/*
-**/deploy/**
+deploy/**
 /running_version.txt
 /commit_hash.txt

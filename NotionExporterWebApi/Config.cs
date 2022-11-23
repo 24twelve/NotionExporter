@@ -12,9 +12,7 @@ namespace NotionExporterWebApi
             var dto = JsonSerializer.DeserializeObject<ConfigDto>(configRaw);
             ValidateConfig(dto);
 
-            ApplicationEnvironment = dto!.ApplicationEnvironment!.Value;
             NotionTokenV2 = dto!.NotionTokenV2!;
-            IntegrationToken = dto!.IntegrationToken!;
             DropboxAccessToken = dto!.DropboxAccessToken!;
             NotionWorkspaceId = dto!.NotionWorkspaceId!;
             LogPath = dto!.LogPath!;
@@ -23,7 +21,6 @@ namespace NotionExporterWebApi
             RawConfig.DropboxAccessToken = "SECRET";
             RawConfig.NotionTokenV2 = "SECRET";
             RawConfig.NotionWorkspaceId = "SECRET";
-            RawConfig.IntegrationToken = "SECRET";
         }
 
         public static string ToPrettyJson()
@@ -40,20 +37,10 @@ namespace NotionExporterWebApi
             {
                 throw new Exception(nameof(configDto));
             }
-
-            if (!configDto.ApplicationEnvironment.HasValue)
-            {
-                throw new Exception(configDto.ApplicationEnvironment.ToString());
-            }
-
+            
             if (string.IsNullOrEmpty(configDto.NotionTokenV2))
             {
                 throw new Exception("Null config option NotionTokenV2");
-            }
-
-            if (string.IsNullOrEmpty(configDto.IntegrationToken))
-            {
-                throw new Exception("Null config option IntegrationToken");
             }
 
             if (string.IsNullOrEmpty(configDto.DropboxAccessToken))
@@ -72,11 +59,7 @@ namespace NotionExporterWebApi
             }
         }
 
-        public static ApplicationEnvironment ApplicationEnvironment { get; set; }
-
         public static string NotionTokenV2 { get; set; } = "";
-
-        public static string IntegrationToken { get; set; } = "";
 
         public static string DropboxAccessToken { get; set; } = "";
 
@@ -89,14 +72,8 @@ namespace NotionExporterWebApi
 
     public class ConfigDto
     {
-        [JsonProperty("application-environment")]
-        public ApplicationEnvironment? ApplicationEnvironment { get; set; }
-
         [JsonProperty("notion-token-v2")]
         public string? NotionTokenV2 { get; set; }
-
-        [JsonProperty("integration-token")]
-        public string? IntegrationToken { get; set; }
 
         [JsonProperty("dropbox-access-token")]
         public string? DropboxAccessToken { get; set; }
