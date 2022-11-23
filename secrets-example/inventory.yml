@@ -1,10 +1,9 @@
 production:
   vars:
-    #service_user_name: "service-user" ##fix
-    service_user_password: "" ##fix
-    root_user_password: "" ##fix
-    ansible_user: ""
-    #ansible_ssh_password: "{{ service_user_password }}"
+    service_user_name: ""
+    ansible_user: "" #note: variable substitution does not work for rsync module, therefore duplicate value from service_user_name
+    service_user_password: ""
+    root_user_password: ""
     ansible_ssh_private_key_file: ""
     ansible_ssh_public_key_file: ""
   hosts:
