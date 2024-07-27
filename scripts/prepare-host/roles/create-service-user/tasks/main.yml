@@ -1,11 +1,4 @@
 ---
-- name: Create service user with sudo rights  
-  hosts: production
-  vars:
-    ansible_user: root
-    ansible_ssh_password: "{{ root_user_password }}"
-    ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
-  tasks:
   - name: Make sure we have a 'wheel' group
     group:
       name: wheel
@@ -33,3 +26,4 @@
       state: present
       key: "{{ lookup('file',  ansible_ssh_public_key_file) }}"
     become: true
+

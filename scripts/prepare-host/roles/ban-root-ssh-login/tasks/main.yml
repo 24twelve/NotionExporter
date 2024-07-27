@@ -1,0 +1,33 @@
+---
+  - name: Disable Root SSH Login
+    lineinfile:
+      dest: /etc/ssh/sshd_config
+      regexp: '^PermitRootLogin'
+      line: "PermitRootLogin no"
+      state: present
+      backup: yes
+    notify:
+       - restart ssh
+    become: true
+  - name: Setup custom SSH port
+    lineinfile:
+      dest: /etc/ssh/sshd_config
+      regexp: '^Port 22'
+      line: "Port {{ansible_port}}"
+      insertbefore: BOF
+      backup: yes
+    notify:
+       - restart ssh
+    become: true
+  - name: Ban common SSH port
+    lineinfile:
+      dest: /etc/ssh/sshd_config
+      regexp: '^Port 22'
+      state: absent
+      backup: yes
+    notify:
+       - restart ssh
+    become: true
+  - name: Reboot VM
+    reboot:
+    become: true

@@ -1,0 +1,5 @@
+- name: Prepare server
+  hosts: vm
+  roles:
+      - role: create-service-user
+      - role: ban-root-ssh-login
