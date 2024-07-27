@@ -1,5 +1,11 @@
 - name: Prepare server
-  hosts: vm
+  gather_facts: no
+  hosts: production
+  vars:
+    port_banned_substring: "Connection refused"
+    ansible_user: "service-user"
   roles:
       - role: create-service-user
+        tags: create-service-user
       - role: ban-root-ssh-login
+        tags: ban-root-ssh-login

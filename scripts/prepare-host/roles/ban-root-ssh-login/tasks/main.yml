@@ -1,4 +1,12 @@
 ---
+  - name: Probe default ssh port
+    command: /bin/true
+    ignore_unreachable: yes
+    register: port_check_result
+  - name: Set custom ansible_port if required 
+    set_fact:
+      ansible_port: "{{ custom_ssh_port }}"
+    when: port_check_result.msg is defined and port_banned_substring in port_check_result.msg
   - name: Disable Root SSH Login
     lineinfile:
       dest: /etc/ssh/sshd_config
@@ -8,7 +16,6 @@
       backup: yes
     notify:
        - restart ssh
-    become: true
   - name: Setup custom SSH port
     lineinfile:
       dest: /etc/ssh/sshd_config
@@ -18,7 +25,6 @@
       backup: yes
     notify:
        - restart ssh
-    become: true
   - name: Ban common SSH port
     lineinfile:
       dest: /etc/ssh/sshd_config
@@ -27,7 +33,5 @@
       backup: yes
     notify:
        - restart ssh
-    become: true
   - name: Reboot VM
     reboot:
-    become: true

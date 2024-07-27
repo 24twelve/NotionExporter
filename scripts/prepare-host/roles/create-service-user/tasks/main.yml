@@ -1,4 +1,13 @@
 ---
+  - name: Probe default ssh port
+    command: /bin/true
+    ignore_unreachable: yes
+    register: port_check_result
+    become: yes
+  - name: Set custom ansible_port if required 
+    set_fact:
+      ansible_port: "{{ custom_ssh_port }}"
+    when: port_check_result.msg is defined and port_banned_substring in port_check_result.msg
   - name: Make sure we have a 'wheel' group
     group:
       name: wheel
